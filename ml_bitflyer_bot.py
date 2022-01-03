@@ -344,7 +344,7 @@ def check_order( flag ):
 	else:
 		if position:
 			if flag["order"]["exist"]:
-				print("ドテン注文が約定しました")
+				print("注文が約定しました")
 				flag["position"]["count"]=0
 			else:
 				flag["position"]["count"] += 1
@@ -489,12 +489,16 @@ def cancel_order( orders,flag ):
 # ============================================= main =============================================
 flag = get_init_flag()
 firstFlg = True
+last_minute = 99
 
 while True:
 	try:
 		now = datetime.now() + timedelta(hours=9)
+		
 		# 15分ごとにローソク足を取得して特徴量を作成し、モデルで予測します
-		if now.minute % 15 == 0 or firstFlg:
+		if (now.minute % 15 == 0 or firstFlg) and last_minute != now.minute:
+			print(now)
+			last_minute = now.minute
 			firstFlg = False
 			# while flag["order"]["exist"] or flag["init_flag"]:
 			# 	flag["init_flag"] = False
@@ -626,10 +630,10 @@ while True:
 							time.sleep(20)
 							continue
 
-		time.sleep(60)
+		time.sleep(10)
 	except Exception as e:
 		print("エラー")
 		print(e)
 		flag = get_init_flag()
-		time.sleep(60)
+		time.sleep(10)
 		continue
