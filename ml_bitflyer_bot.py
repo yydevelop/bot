@@ -21,7 +21,7 @@ bitflyer.apiKey = settings.apiKey
 bitflyer.secret = settings.secret
 
 amount = 0.01
-exit_max = 3
+exit_max = 1
 exit_cut = 10
 ashi = 60 * 15
 
@@ -252,6 +252,7 @@ def cancel_exit( orders,flag ):
 				id = o["id"],
 				params = { "product_code" : "FX_BTC_JPY" })
 		print("約定していないExit注文をキャンセルしました")
+		flag["old_exit_price"] = flag["exit_price"]
 		flag["exit"]["exist"] = False
 		flag["exit"]["count"] = 0
 		flag["exit_price"] = 0
@@ -308,6 +309,7 @@ def cancel_position(orders, flag ):
 	while True:
 		try:
 			for o in orders:
+				print("オーダーのキャンセル：",o["id"])
 				bitflyer.cancel_order(
 					symbol = product_code,
 					id = o["id"],
@@ -341,11 +343,18 @@ def check_order( flag ):
 		print("BitflyerのAPIで問題発生 : ",e)
 	else:
 		if position:
-			flag["position"]["count"] += 1
+			if flag["order"]["exist"]:
+				print("ドテン注文が約定しました")
+				flag["position"]["count"]=0
+			else:
+				flag["position"]["count"] += 1
+
 			if flag["position"]["count"] >= exit_cut:
 				print("ロスカット回数を超過したので成行注文でポジションを解消します")
 				flag = cancel_position(orders, flag)
-			elif orders:
+				return flag
+
+			if orders:
 				if orders[0]['amount'] == amount*2:
 					print("ドテン注文が約定しなかったのでキャンセルします")
 					flag["exit_price"] = flag["old_exit_price"]
@@ -601,7 +610,6 @@ while True:
 							params = { "product_code" : product_code })
 						time.sleep(20)
 						print("注文が完了しました。",order)
-						flag["old_exit_price"] = flag["exit_price"]
 						flag["exit_price"] = exit_price
 						flag["order"]["exist"] = True
 						flag["order"]["side"] = buysell.upper()
