@@ -227,22 +227,17 @@ def get_price(min, before=0, after=0):
 
 	response = requests.get("https://api.cryptowat.ch/markets/bitflyer/btcfxjpy/ohlc",params)
 	data = response.json()
-	
-	if data["result"][str(min)] is not None:
-		for i in data["result"][str(min)]:
-			if i[1] != 0 and i[2] != 0 and i[3] != 0 and i[4] != 0:
-				price.append({ "close_time" : i[0],
-					"close_time_dt" : datetime.fromtimestamp(i[0]).strftime('%Y/%m/%d %H:%M'),
-					"open_price" : i[1],
-					"high_price" : i[2],
-					"low_price" : i[3],
-					"close_price": i[4],
-					"volume": i[5] })
-		return price
-		
-	else:
-		flag["records"]["log"].append("データが存在しません")
-		return None
+	print(data['allowance']['remaining'],data['allowance']['cost'],)
+	for i in data["result"][str(min)]:
+		if i[1] != 0 and i[2] != 0 and i[3] != 0 and i[4] != 0:
+			price.append({ "close_time" : i[0],
+				"close_time_dt" : datetime.fromtimestamp(i[0]).strftime('%Y/%m/%d %H:%M'),
+				"open_price" : i[1],
+				"high_price" : i[2],
+				"low_price" : i[3],
+				"close_price": i[4],
+				"volume": i[5] })
+	return price
 
 # 時間と始値・終値を表示する関数
 def print_price( data ):
@@ -508,11 +503,13 @@ while True:
 						time.sleep(20)
 						continue
 
-			for _ in range(2):
-				price = get_price(60*15)
-				if price is None:
-					time.sleep(10)
-					continue
+			# for _ in range(3):
+			# 	price = get_price(60*15)
+			# 	if price is None:
+			# 		time.sleep(10)
+			# 		continue
+			# 	break
+			price = get_price(60*15)
 
 			df = pd.DataFrame(price)
 			df=df.rename(columns={
