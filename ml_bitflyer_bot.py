@@ -20,6 +20,7 @@ bitflyer = ccxt.bitflyer()		 # 使用する取引所を記入
 bitflyer.apiKey = settings.apiKey
 bitflyer.secret = settings.secret
 
+min_amount = 0.01
 amount = 0.01
 exit_max = 1
 exit_cut = 10
@@ -193,6 +194,7 @@ def get_init_flag():
 		"sell_signal":0,
 		"entry_price":0,
 		"exit_price":0,
+		"position_price":0,
 		"old_exit_price":0,
 		"order":{
 			"exist" : False,
@@ -263,6 +265,7 @@ def cancel_exit( orders,flag ):
 			print("現在、まだ未決済の建玉があります")
 			flag["position"]["exist"] = True
 			flag["position"]["side"] = str(position[0]["side"])
+			flag["position_price"] = position[0]['price']
 		else:
 			print("現在、未決済の建玉はありません")
 			flag = get_init_flag()
@@ -301,8 +304,8 @@ def exit_sashi( flag ):
 	return flag
 
 
-def cancel_position(orders, flag ):
-	if flag["position"]["side"].upper() == 'BUY':
+def cancel_position(position, orders, flag ):
+	if position[0]['side'].upper() == 'BUY':
 		exit_side = 'SELL'
 	else:
 		exit_side = 'BUY'
@@ -315,14 +318,26 @@ def cancel_position(orders, flag ):
 					id = o["id"],
 					params = { "product_code" : "FX_BTC_JPY" })
 
+			exit_amount = np.float64(position[0]['size'])
+			if exit_amount < min_amount:
+				order = bitflyer.create_order(
+					symbol = product_code,
+					type='market',
+					side=position[0]['side'],
+					amount=str(min_amount),
+					params = { "product_code" : "FX_BTC_JPY" })
+				exit_amount += min_amount
+			time.sleep(10)
+			
 			order = bitflyer.create_order(
 #				symbol = 'BTC/JPY',
 				symbol = product_code,
 				type='market',
 				side=exit_side,
-				amount=str(amount),
+				amount=str(exit_amount),
 				params = { "product_code" : "FX_BTC_JPY" })
-			time.sleep(20)
+			
+			time.sleep(10)
 			flag = get_init_flag()
 			print("成行注文が完了しました")
 			break
@@ -333,7 +348,7 @@ def cancel_position(orders, flag ):
 	return flag
 
 # サーバーに出した注文が約定したかどうかチェックする関数
-def check_order( flag ):
+def check_status( flag ):
 	try:
 		position = bitflyer.private_get_getpositions( params = { "product_code" : "FX_BTC_JPY" })
 		orders = bitflyer.fetch_open_orders(
@@ -343,15 +358,16 @@ def check_order( flag ):
 		print("BitflyerのAPIで問題発生 : ",e)
 	else:
 		if position:
-			if flag["order"]["exist"]:
-				print("注文が約定しました")
-				flag["position"]["count"]=0
-			else:
-				flag["position"]["count"] += 1
+			flag["position"]["count"] += 1
 
 			if flag["position"]["count"] >= exit_cut:
 				print("ロスカット回数を超過したので成行注文でポジションを解消します")
-				flag = cancel_position(orders, flag)
+				flag = cancel_position(position, orders, flag)
+				return flag
+
+			if (np.float64(position[0]["size"]) % amount) != 0:
+				print("半端ポジションを解消します。")
+				flag = cancel_position(position, orders, flag)
 				return flag
 
 			if orders:
@@ -372,20 +388,17 @@ def check_order( flag ):
 					flag["position"]["side"] = str(position[0]['side'])
 					flag["position"]["exist"] = True
 					flag["exit"]["exist"] = True
+					flag["position_price"] = orders[0]['price']
 					if flag["exit_price"] == 0:
 						flag["exit_price"] = np.float64(orders[0]['price'])
 			else:
-				print("約定済みの注文があります！")
-				if flag["order"]["exist"] :
-					flag["position"]["count"] = 0
+				print("ポジションを持っています")
 				flag["order"]["exist"] = False
 				flag["order"]["count"] = 0
 				flag["order"]["side"] = ''
 				flag["position"]["exist"] = True
 				flag["position"]["side"] = str(position[0]['side'])
-				# flag["exit"]["exist"] = False
-				# flag["exit"]["count"] = 0
-				# flag["exit_price"] = 0
+				flag["position_price"] = position[0]['price']
 
 		else:
 			if orders:
@@ -398,6 +411,12 @@ def check_order( flag ):
 					print("注文が約定しなかったのでキャンセルします")
 					flag = cancel_order( orders,flag )
 			else:
+				if flag["exit"]["exist"]:
+					if flag["position"]["side"].upper() == 'BUY':
+						print_log("Exit注文約定：損益＝{}".format(flag["exit_price"] - flag["position_price"]))
+					else:
+						print_log("Exit注文約定：損益＝{}".format(flag["position_price"] - flag["exit_price"]))
+
 				flag["order"]["exist"] = False
 				flag["order"]["count"] = 0
 				flag["order"]["side"] = ''
@@ -409,8 +428,40 @@ def check_order( flag ):
 				print("未約定の注文はありません")
 	return flag
 
+# サーバーに出した注文が約定したかどうかチェックする関数
+def check_order( flag ):
+	try:
+		position = bitflyer.private_get_getpositions( params = { "product_code" : "FX_BTC_JPY" })
+		orders = bitflyer.fetch_open_orders(
+			symbol = product_code,
+			params = { "product_code" : "FX_BTC_JPY" })
+	except ccxt.BaseError as e:
+		print("BitflyerのAPIで問題発生 : ",e)
+	else:
+		if position:
+			if not orders:
+				if flag["position"]["exist"]:
+					print("ドテン注文が約定しました！")
+					if flag["position"]["side"].upper() == 'BUY':
+						print_log("ドテン注文：損益＝{}".format(flag["entry_price"] - flag["position_price"]))
+					else:
+						print_log("ドテン注文：損益＝{}".format(flag["position_price"] - flag["entry_price"]))
+
+				else:
+					print("注文が約定しました！")
+				
+				flag["position"]["count"] = 0
+				flag["order"]["exist"] = False
+				flag["order"]["count"] = 0
+				flag["order"]["side"] = ''
+				flag["position"]["exist"] = True
+				flag["position"]["side"] = str(position[0]['side'])
+				flag["position_price"] = position[0]['price']
+	return flag
+
 # サーバーに出したExit注文が約定したかどうかチェックする関数
 def check_exit( flag , kbn):
+	print("check_exit")
 	try:
 		position = bitflyer.private_get_getpositions( params = { "product_code" : "FX_BTC_JPY" })
 		orders = bitflyer.fetch_open_orders(
@@ -438,6 +489,7 @@ def check_exit( flag , kbn):
 				flag["order"]["count"] = 0
 				flag["position"]["exist"] = True
 				flag["position"]["side"] = str(position[0]['side'])
+				flag["position_price"] = position[0]['price']
 				flag["exit"]["exist"] = False
 				flag["exit"]["count"] = 0
 				print("ポジションが残っているようです")
@@ -451,8 +503,13 @@ def check_exit( flag , kbn):
 					print("Exit注文をキャンセルします。")
 					flag = cancel_exit( orders,flag )
 			else:
-				print("ポジション解消済み")
-				flag = get_init_flag()
+				flag["order"]["exist"] = False
+				flag["order"]["count"] = 0
+				flag["position"]["exist"] = False
+				flag["position"]["side"] = ''
+				flag["position_price"] = 0
+				flag["exit"]["exist"] = False
+				flag["exit"]["count"] = 0
 	return flag
 
 # 注文をキャンセルする関数
@@ -475,6 +532,7 @@ def cancel_order( orders,flag ):
 			print("現在、まだ未決済の建玉があります")
 			flag["position"]["exist"] = True
 			flag["position"]["side"] = position[0]["side"]
+			flag["position_price"] = position[0]['price']
 			flag["exit"]["exist"] = False
 		else:
 			print("現在、未決済の建玉はありません")
@@ -491,10 +549,12 @@ flag = get_init_flag()
 firstFlg = True
 last_minute = 99
 
+print_log("bytflyerBOT起動")
+
 while True:
 	try:
 		now = datetime.now() + timedelta(hours=9)
-		
+
 		# 15分ごとにローソク足を取得して特徴量を作成し、モデルで予測します
 		if (now.minute % 15 == 0 or firstFlg) and last_minute != now.minute:
 			print(now)
@@ -502,19 +562,20 @@ while True:
 			firstFlg = False
 			# while flag["order"]["exist"] or flag["init_flag"]:
 			# 	flag["init_flag"] = False
-			# 	flag = check_order( flag )
-			flag = check_order( flag )
+			# 	flag = check_status( flag )
+			flag = check_status( flag )
 
 			print(flag)
 
-			if flag["position"]["exist"]:
-				if flag["exit"]["exist"]:
-					flag = check_exit( flag , "check")
-				else:
-					if flag["exit_price"] != 0:
-						flag = exit_sashi( flag )
-						time.sleep(20)
-						continue
+			# 不要？
+			# if flag["position"]["exist"]:
+			# 	if flag["exit"]["exist"]:
+			# 		flag = check_exit( flag , "check")
+			# 	else:
+			# 		if flag["exit_price"] != 0:
+			# 			flag = exit_sashi( flag )
+			# 			time.sleep(20)
+			# 			continue
 
 			# for _ in range(3):
 			# 	price = get_price(60*15)
@@ -532,7 +593,7 @@ while True:
 					"close_price": "cl",
 					"volume": "volume",
 			})
-			df['close_time_dt'] = pd.to_datetime(df['close_time_dt']) - timedelta(seconds=ashi)
+			df['close_time_dt'] = pd.to_datetime(df['close_time_dt'])
 			df['datetime'] = df['close_time_dt']
 			df['cl'] = df['cl'].astype(np.float64)
 			df['op'] = df['op'].astype(np.float64)
@@ -614,6 +675,7 @@ while True:
 							params = { "product_code" : product_code })
 						time.sleep(20)
 						print("注文が完了しました。",order)
+						flag["entry_price"] = entry_price
 						flag["exit_price"] = exit_price
 						flag["order"]["exist"] = True
 						flag["order"]["side"] = buysell.upper()
@@ -631,6 +693,16 @@ while True:
 							continue
 
 		time.sleep(10)
+		if flag["order"]["exist"]:
+			flag = check_order( flag )
+
+			if not flag["order"]["exist"] and flag["position"]["exist"]:
+				if not flag["exit"]["exist"]:
+					if flag["exit_price"] != 0:
+						flag = exit_sashi( flag )
+			time.sleep(20)
+			continue
+
 	except Exception as e:
 		print("エラー")
 		print(e)
