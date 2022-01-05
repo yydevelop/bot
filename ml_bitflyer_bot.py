@@ -22,8 +22,8 @@ bitflyer.secret = settings.secret
 
 min_amount = 0.01
 amount = 0.01
-exit_max = 1
-exit_cut = 10
+exit_max = 5
+exit_cut = 20
 ashi = 60 * 15
 
 # 特徴量作成
@@ -265,7 +265,7 @@ def cancel_exit( orders,flag ):
 			print("現在、まだ未決済の建玉があります")
 			flag["position"]["exist"] = True
 			flag["position"]["side"] = str(position[0]["side"])
-			flag["position_price"] = position[0]['price']
+			flag["position_price"] = np.float64(position[0]['price'])
 		else:
 			print("現在、未決済の建玉はありません")
 			flag = get_init_flag()
@@ -380,7 +380,7 @@ def check_status( flag ):
 					print("同じ方向のexit注文があるのでキャンセルします")
 					flag = cancel_exit( orders,flag )
 				else:
-					print("ポジションとキャンセル注文の両方があります")
+					print("ポジションとExit注文の両方があります")
 					# 既存の注文あり
 					flag["order"]["exist"] = False
 					flag["order"]["count"] = 0
@@ -388,7 +388,8 @@ def check_status( flag ):
 					flag["position"]["side"] = str(position[0]['side'])
 					flag["position"]["exist"] = True
 					flag["exit"]["exist"] = True
-					flag["position_price"] = orders[0]['price']
+					flag["exit"]["count"] += 1
+					flag["position_price"] = np.float64(position[0]['price'])
 					if flag["exit_price"] == 0:
 						flag["exit_price"] = np.float64(orders[0]['price'])
 			else:
@@ -456,7 +457,7 @@ def check_order( flag ):
 				flag["order"]["side"] = ''
 				flag["position"]["exist"] = True
 				flag["position"]["side"] = str(position[0]['side'])
-				flag["position_price"] = position[0]['price']
+				flag["position_price"] = np.float64(position[0]['price'])
 	return flag
 
 # サーバーに出したExit注文が約定したかどうかチェックする関数
@@ -489,7 +490,7 @@ def check_exit( flag , kbn):
 				flag["order"]["count"] = 0
 				flag["position"]["exist"] = True
 				flag["position"]["side"] = str(position[0]['side'])
-				flag["position_price"] = position[0]['price']
+				flag["position_price"] = np.float64(position[0]['price'])
 				flag["exit"]["exist"] = False
 				flag["exit"]["count"] = 0
 				print("ポジションが残っているようです")
