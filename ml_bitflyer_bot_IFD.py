@@ -656,6 +656,7 @@ while True:
 				# 	params = { "product_code" : product_code })
 				parent_id = bitflyer.private_post_sendparentorder(params = {
 						"order_method" : "IFD", 
+						"minute_to_expire" : 1440, 
 						"parameters" : [
 							{
 								#IFD：指値で買い注文、約定したらOCO注文
