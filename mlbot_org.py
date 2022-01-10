@@ -147,7 +147,7 @@ df = fetcher.fetch_ohlcv(
 # 実験に使うデータ期間を限定する
 df = df[df.index < pd.to_datetime('2021-12-01 00:00:00Z')]
 
-display(df)
+
 print(df.dtypes)
 df.to_pickle('df_ohlcv.pkl')
 
@@ -202,7 +202,7 @@ df['fee'].plot()
 plt.title('maker手数料の推移')
 plt.show()
     
-display(df)
+
 df.to_pickle('df_ohlcv_with_fee.pkl')
 
 # %% [markdown]
@@ -336,7 +336,7 @@ def calc_features(df):
 df = pd.read_pickle('df_ohlcv_with_fee.pkl')
 df = df.dropna()
 df = calc_features(df)
-display(df)
+
 df.to_pickle('df_features.pkl')
 
 # %% [markdown]
