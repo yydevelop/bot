@@ -1,56 +1,71 @@
 import talib
+import numpy as np
 
 features = sorted([
-    'ADX',
-    'ADXR',
-    'APO',
-    'AROON_aroondown',
-    'AROON_aroonup',
-    'AROONOSC',
-    'CCI',
-    'DX',
+#     'ADX',
+#     'ADXR',
+#     'APO',
+#     'AROON_aroondown',
+#     'AROON_aroonup',
+#     'AROONOSC',
+#     'CCI',
+#     'DX',
+#     'MACD_macd',
+#     'MACD_macdsignal',
+#     'MACD_macdhist',
+#     'MFI',
+# #     'MINUS_DI',
+# #     'MINUS_DM',
+#     'MOM',
+# #     'PLUS_DI',
+# #     'PLUS_DM',
+#     'RSI',
+#     'STOCH_slowk',
+#     'STOCH_slowd',
+#     'STOCHF_fastk',
+# #     'STOCHRSI_fastd',
+#     'ULTOSC',
+#     'WILLR',
+# #     'ADOSC',
+# #     'NATR',
+#     'HT_DCPERIOD',
+#     'HT_DCPHASE',
+#     'HT_PHASOR_inphase',
+#     'HT_PHASOR_quadrature',
+#     'HT_TRENDMODE',
+#     'BETA',
+#     'LINEARREG',
+#     'LINEARREG_ANGLE',
+#     'LINEARREG_INTERCEPT',
+#     'LINEARREG_SLOPE',
+#     'STDDEV',
+#     'BBANDS_upperband',
+#     'BBANDS_middleband',
+#     'BBANDS_lowerband',
+#     'DEMA',
+#     'EMA',
+#     'HT_TRENDLINE',
+#     'KAMA',
+#     'MA',
+#     'MIDPOINT',
+#     'T3',
+#     'TEMA',
+#     'TRIMA',
+#     'WMA',
     'MACD_macd',
-    'MACD_macdsignal',
-    'MACD_macdhist',
-    'MFI',
-#     'MINUS_DI',
-#     'MINUS_DM',
-    'MOM',
-#     'PLUS_DI',
-#     'PLUS_DM',
     'RSI',
-    'STOCH_slowk',
-    'STOCH_slowd',
-    'STOCHF_fastk',
-#     'STOCHRSI_fastd',
-    'ULTOSC',
-    'WILLR',
-#     'ADOSC',
-#     'NATR',
-    'HT_DCPERIOD',
-    'HT_DCPHASE',
-    'HT_PHASOR_inphase',
-    'HT_PHASOR_quadrature',
-    'HT_TRENDMODE',
-    'BETA',
-    'LINEARREG',
-    'LINEARREG_ANGLE',
-    'LINEARREG_INTERCEPT',
-    'LINEARREG_SLOPE',
-    'STDDEV',
-    'BBANDS_upperband',
-    'BBANDS_middleband',
-    'BBANDS_lowerband',
-    'DEMA',
-    'EMA',
-    'HT_TRENDLINE',
-    'KAMA',
-    'MA',
-    'MIDPOINT',
-    'T3',
-    'TEMA',
-    'TRIMA',
-    'WMA',
+    'VOL_3',
+    'RETURN_3',
+    'MA_GAP_3',
+    'VOL_5',
+    'RETURN_5',
+    'MA_GAP_5',
+    'VOL_21',
+    'RETURN_21',
+    'MA_GAP_21',
+    'VOL_55',
+    'RETURN_55',
+    'MA_GAP_55',
 ])
 
 
@@ -125,5 +140,20 @@ def calc_features(df):
     df['LINEARREG_INTERCEPT'] = talib.LINEARREG_INTERCEPT(close, timeperiod=14) - close
     df['LINEARREG_SLOPE'] = talib.LINEARREG_SLOPE(close, timeperiod=14)
     df['STDDEV'] = talib.STDDEV(close, timeperiod=5, nbdev=1)
+
+    periods = [1,3,5,8,13,21,55,89]
+    for period in periods:
+        col = 'RETURN_{}'.format(period)
+        df[col] = \
+            df['cl'].pct_change(period)
+
+        if period !=1:
+            col = 'VOL_{}'.format(period)
+            df[col] = \
+                np.log(df['cl']).diff().rolling(period).std()
+            
+        col = 'MA_GAP_{}'.format(period)
+        df[col] = \
+            df['cl'] / (df['cl'].rolling(period).mean())
 
     return df

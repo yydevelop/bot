@@ -9,6 +9,7 @@ import pybitflyer
 import traceback
 import settings
 from features import features,calc_features
+import numpy as np
 
 #BitFlyerからOHLCVデータを取得
 def get_bitflyer_ohlcv(target_coin,time_scale):
@@ -106,8 +107,6 @@ def start(exchange,max_lot,lot,interval):
                 #モデル読み込み
                 model_y_buy = joblib.load('./model/model_y_buy_bffx.xz')
                 model_y_sell = joblib.load('./model/model_y_sell_bffx.xz')
-                # model_y_buy = joblib.load('./model/model_y_buy.xz')
-                # model_y_sell = joblib.load('./model/model_y_sell.xz')
 
                 #推論
                 df_features["y_predict_buy"] = model_y_buy.predict(df_features[features])
