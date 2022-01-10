@@ -66,6 +66,8 @@ features = sorted([
     'VOL_55',
     'RETURN_55',
     'MA_GAP_55',
+    'PER_OPCL',
+    'PER_HILO',
 ])
 
 
@@ -155,5 +157,10 @@ def calc_features(df):
         col = 'MA_GAP_{}'.format(period)
         df[col] = \
             df['cl'] / (df['cl'].rolling(period).mean())
-
+    
+    df['hilo'] = df['hi'] - df['lo']
+    df['PER_HILO'] = df['hilo'] / (hilo+1)
+    df['opcl'] = df['op'] - df['cl']
+    df['PER_OPCL'] = df['opcl'] / (hilo+1)
+    
     return df
