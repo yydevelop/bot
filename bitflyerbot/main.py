@@ -112,8 +112,8 @@ def start(exchange,max_lot,lot,interval):
                 df_features["y_predict_buy"] = model_y_buy.predict(df_features[features])
                 df_features["y_predict_sell"] = model_y_sell.predict(df_features[features])
 
-                df_features["buy_price"] = df_features["cl"] - df_features["ATR"] * 0.5
-                df_features["sell_price"] = df_features["cl"] + df_features["ATR"] * 0.5
+                df_features["buy_price"] = df_features["cl"] - df_features["ATR"] * 0.4
+                df_features["sell_price"] = df_features["cl"] + df_features["ATR"] * 0.4
 
                 #売買判定のための情報取得
                 predict_buy = df_features["y_predict_buy"].iloc[-1]
