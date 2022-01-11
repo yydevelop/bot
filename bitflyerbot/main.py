@@ -133,13 +133,14 @@ def start(exchange,max_lot,lot,interval):
                 order_side = "NONE"
 
                 #エグジット
-                if predict_buy < 0 and position["side"] == "BUY":
+                #if predict_buy < 0 and position["side"] == "BUY":
+                if position["side"] == "BUY":
                     order_side = "SELL"
                     order_price = sell_price
                     order_size = round(abs(position["size"]),8)
                     order_bitflyer(exchange,order_side,order_price,order_size)
-                if predict_sell < 0 and position["side"] == "SELL":
-                    order_side = "BUY"
+                #if predict_sell < 0 and position["side"] == "SELL":
+                if position["side"] == "SELL":                    order_side = "BUY"
                     order_price = buy_price
                     order_size = round(abs(position["size"]),8)
                     order_bitflyer(exchange,order_side,order_price,order_size)
