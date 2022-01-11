@@ -144,12 +144,12 @@ def start(exchange,max_lot,lot,interval):
                     order_size = round(abs(position["size"]),8)
                     order_bitflyer(exchange,order_side,order_price,order_size)
                 #エントリー
-                if predict_buy > 0 and position["size"] < max_lot:
+                if predict_buy > 0 and position["size"] < max_lot and predict_buy>=predict_sell:
                     order_side = "BUY"
                     order_price = buy_price
                     order_size = lot
                     order_bitflyer(exchange,order_side,order_price,order_size)
-                if predict_sell > 0 and position["size"] > -max_lot:
+                elif predict_sell > 0 and position["size"] > -max_lot:
                     order_side = "SELL"
                     order_price = sell_price
                     order_size = lot                    
