@@ -2,7 +2,7 @@ import talib
 import numpy as np
 
 features = sorted([
-#     'ADX',
+#      'ADX',
 #     'ADXR',
 #     'APO',
 #     'AROON_aroondown',
@@ -52,22 +52,25 @@ features = sorted([
 #     'TEMA',
 #     'TRIMA',
 #     'WMA',
-    'MACD_macd',
-    'RSI',
+    # 'MACD_macd',
+    # 'RSI',
+    # 'ATR',
+    # 'volume',
     'VOL_3',
     'RETURN_3',
     'MA_GAP_3',
     'VOL_5',
     'RETURN_5',
     'MA_GAP_5',
-    'VOL_21',
-    'RETURN_21',
-    'MA_GAP_21',
-    'VOL_55',
-    'RETURN_55',
-    'MA_GAP_55',
+    # 'VOL_21',
+    # 'RETURN_21',
+    # 'MA_GAP_21',
+    # 'VOL_55',
+    # 'RETURN_55',
+    # 'MA_GAP_55',
     'PER_OPCL',
     'PER_HILO',
+    'CL_LOG',
 ])
 
 
@@ -143,7 +146,7 @@ def calc_features(df):
     df['LINEARREG_SLOPE'] = talib.LINEARREG_SLOPE(close, timeperiod=14)
     df['STDDEV'] = talib.STDDEV(close, timeperiod=5, nbdev=1)
 
-    periods = [1,3,5,8,13,21,55,89]
+    periods = [3,5,8,13,21,55,89]
     for period in periods:
         col = 'RETURN_{}'.format(period)
         df[col] = \
@@ -162,5 +165,8 @@ def calc_features(df):
     df['PER_HILO'] = df['hilo'] / (hilo+1)
     df['opcl'] = df['op'] - df['cl']
     df['PER_OPCL'] = df['opcl'] / (hilo+1)
-    
+    df['CL_LOG'] = np.log(df['cl']).diff()
+
+    # df['LOG_OPCL'] = df['opcl'].apply(np.log)
+
     return df

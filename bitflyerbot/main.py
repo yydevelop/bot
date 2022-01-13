@@ -13,6 +13,8 @@ import numpy as np
 
 #BitFlyerからOHLCVデータを取得
 def get_bitflyer_ohlcv(target_coin,time_scale):
+    time.sleep(5)
+
     #OHLCV取得
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'}
     unixtime = datetime.now().timestamp() * 1000
@@ -112,8 +114,8 @@ def start(exchange,max_lot,lot,interval):
                 df_features["y_predict_buy"] = model_y_buy.predict(df_features[features])
                 df_features["y_predict_sell"] = model_y_sell.predict(df_features[features])
 
-                df_features["buy_price"] = df_features["cl"] - df_features["ATR"] * 0.4
-                df_features["sell_price"] = df_features["cl"] + df_features["ATR"] * 0.4
+                df_features["buy_price"] = df_features["cl"] - df_features["ATR"] * 0.496
+                df_features["sell_price"] = df_features["cl"] + df_features["ATR"] * 0.496
 
                 #売買判定のための情報取得
                 predict_buy = df_features["y_predict_buy"].iloc[-1]
@@ -138,23 +140,27 @@ def start(exchange,max_lot,lot,interval):
                     order_side = "SELL"
                     order_price = sell_price
                     order_size = round(abs(position["size"]),8)
+                    print("買い建玉のExit注文")
                     order_bitflyer(exchange,order_side,order_price,order_size)
                 #if predict_sell < 0 and position["side"] == "SELL":
                 if position["side"] == "SELL":
                     order_side = "BUY"
                     order_price = buy_price
                     order_size = round(abs(position["size"]),8)
+                    print("売り建玉のExit注文")
                     order_bitflyer(exchange,order_side,order_price,order_size)
                 #エントリー
-                if predict_buy > 0 and position["size"] < max_lot and predict_buy>=predict_sell:
+                if predict_buy > 0 and position["size"] < max_lot:
                     order_side = "BUY"
                     order_price = buy_price
                     order_size = lot
+                    print("買い注文")
                     order_bitflyer(exchange,order_side,order_price,order_size)
-                elif predict_sell > 0 and position["size"] > -max_lot:
+                if predict_sell > 0 and position["size"] > -max_lot:
                     order_side = "SELL"
                     order_price = sell_price
                     order_size = lot                    
+                    print("売り注文")
                     order_bitflyer(exchange,order_side,order_price,order_size) 
 
             except Exception as e:
