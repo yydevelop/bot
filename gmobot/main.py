@@ -100,9 +100,9 @@ def start(exchange,max_lot,lot,interval):
                 #注文処理
 
                 #エグジット
-                if predict_buy < 0 and position["buy"] > 0:
+                if position["buy"] > 0:
                     exchange.create_limit_close_bulk_order("BTC_JPY","SELL",position["buy"],sell_price)
-                if predict_sell < 0 and position["sell"] > 0:
+                if position["sell"] > 0:
                     exchange.create_limit_close_bulk_order("BTC_JPY","BUY",position["sell"] ,buy_price)                                 
 
                 #エントリー
