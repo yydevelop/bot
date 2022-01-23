@@ -80,7 +80,7 @@ def start(exchange,max_lot,lot,interval):
         dt_now = datetime.now()
         
         #指定した時間間隔ごとに実行
-        if dt_now.minute % interval == 0 or first_flg:
+        if dt_now.minute % interval == 0:
             first_flg = False
             try:
 
