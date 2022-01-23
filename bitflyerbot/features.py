@@ -8,7 +8,7 @@ features = sorted([
 #     'AROON_aroondown',
 #     'AROON_aroonup',
 #     'AROONOSC',
-#     'CCI',
+    'CCI',
 #     'DX',
 #     'MACD_macd',
 #     'MACD_macdsignal',
@@ -19,7 +19,7 @@ features = sorted([
 #     'MOM',
 # #     'PLUS_DI',
 # #     'PLUS_DM',
-#     'RSI',
+    'RSI',
 #     'STOCH_slowk',
 #     'STOCH_slowd',
 #     'STOCHF_fastk',
@@ -56,7 +56,7 @@ features = sorted([
     # 'RSI',
     # 'ATR',
     # 'volume',
-    'VOL_3',
+    # 'VOL_3',
     'RETURN_3',
     'MA_GAP_3',
     'VOL_5',
@@ -71,6 +71,15 @@ features = sorted([
     'PER_OPCL',
     'PER_HILO',
     'CL_LOG',
+    # 'BBANDS_upperband',
+    # 'BBANDS_lowerband',
+    # 'BBANDS1_upperband',
+    # 'BBANDS1_lowerband',
+    # 'BBANDS3_upperband',
+    # 'BBANDS3_lowerband',
+    #  'SMA5',
+    #  'SMA11',
+    #  'SMA22',
 ])
 
 
@@ -84,10 +93,18 @@ def calc_features(df):
     orig_columns = df.columns
 
     hilo = (df['hi'] + df['lo']) / 2
-    df['BBANDS_upperband'], df['BBANDS_middleband'], df['BBANDS_lowerband'] = talib.BBANDS(close, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0)
+    df['BBANDS_upperband'], df['BBANDS_middleband'], df['BBANDS_lowerband'] = talib.BBANDS(close, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
     df['BBANDS_upperband'] -= hilo
     df['BBANDS_middleband'] -= hilo
     df['BBANDS_lowerband'] -= hilo
+    df['BBANDS1_upperband'], df['BBANDS1_middleband'], df['BBANDS1_lowerband'] = talib.BBANDS(close, timeperiod=20, nbdevup=1, nbdevdn=1, matype=0)
+    df['BBANDS1_upperband'] -= hilo
+    df['BBANDS1_middleband'] -= hilo
+    df['BBANDS_lowerband'] -= hilo
+    df['BBANDS3_upperband'], df['BBANDS3_middleband'], df['BBANDS3_lowerband'] = talib.BBANDS(close, timeperiod=20, nbdevup=3, nbdevdn=3, matype=0)
+    df['BBANDS3_upperband'] -= hilo
+    df['BBANDS3_middleband'] -= hilo
+    df['BBANDS3_lowerband'] -= hilo
     df['DEMA'] = talib.DEMA(close, timeperiod=30) - hilo
     df['EMA'] = talib.EMA(close, timeperiod=30) - hilo
     df['HT_TRENDLINE'] = talib.HT_TRENDLINE(close) - hilo
@@ -128,7 +145,7 @@ def calc_features(df):
     df['ADOSC'] = talib.ADOSC(high, low, close, volume, fastperiod=3, slowperiod=10)
     df['OBV'] = talib.OBV(close, volume)
 
-    df['ATR'] = talib.ATR(high, low, close, timeperiod=14)
+    df['ATR'] = talib.ATR(high, low, close, timeperiod=14) #★
     df['NATR'] = talib.NATR(high, low, close, timeperiod=14)
     df['TRANGE'] = talib.TRANGE(high, low, close)
 
@@ -168,5 +185,10 @@ def calc_features(df):
     df['CL_LOG'] = np.log(df['cl']).diff()
 
     # df['LOG_OPCL'] = df['opcl'].apply(np.log)
+    df['SMA3'] = talib.SMA(close, timeperiod=3) - hilo
+    df['SMA5'] = talib.SMA(close, timeperiod=5) - hilo
+    df['SMA11'] = talib.SMA(close, timeperiod=11) - hilo
+    df['SMA22'] = talib.SMA(close, timeperiod=22) - hilo
+
 
     return df
