@@ -13,8 +13,6 @@ import numpy as np
 
 #BitFlyerからOHLCVデータを取得
 def get_bitflyer_ohlcv(target_coin,time_scale):
-    time.sleep(5)
-
     #OHLCV取得
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'}
     unixtime = datetime.now().timestamp() * 1000
@@ -135,15 +133,13 @@ def start(exchange,max_lot,lot,interval):
                 order_side = "NONE"
 
                 #エグジット
-                #if predict_buy < 0 and position["side"] == "BUY":
-                if position["side"] == "BUY":
+                if position["side"] == "BUY" and abs(position["size"]) >= 0.01:
                     order_side = "SELL"
                     order_price = sell_price
                     order_size = round(abs(position["size"]),8)
                     print("買い建玉のExit注文")
                     order_bitflyer(exchange,order_side,order_price,order_size)
-                #if predict_sell < 0 and position["side"] == "SELL":
-                if position["side"] == "SELL":
+                if position["side"] == "SELL" and abs(position["size"]) >= 0.01:
                     order_side = "BUY"
                     order_price = buy_price
                     order_size = round(abs(position["size"]),8)

@@ -6,6 +6,7 @@ import requests
 import pandas as pd
 import os
 import settings
+import traceback
 
 from exchange.gmocoin import GmoCoinExchange
 from features import features,calc_features
@@ -101,9 +102,9 @@ def start(exchange,max_lot,lot,interval):
 
                 #エグジット
                 if position["buy"] > 0:
-                    exchange.create_limit_close_bulk_order("BTC_JPY","SELL",position["buy"],sell_price)
+                    exchange.create_limit_close_bulk_order("BTC_JPY","SELL",abs(position_quantity),sell_price)
                 if position["sell"] > 0:
-                    exchange.create_limit_close_bulk_order("BTC_JPY","BUY",position["sell"] ,buy_price)                                 
+                    exchange.create_limit_close_bulk_order("BTC_JPY","BUY",abs(position_quantity),buy_price)                           
 
                 #エントリー
                 if predict_buy > 0 and position_quantity < max_lot:
@@ -118,7 +119,7 @@ def start(exchange,max_lot,lot,interval):
                         exchange.create_limit_order("BTC_JPY","SELL",lot,sell_price)
 
             except Exception as e:
-                print(e)
+                print(traceback.format_exc())
                 pass
 
         time.sleep(10)
