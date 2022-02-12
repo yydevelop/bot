@@ -8,7 +8,7 @@ import os
 import pybitflyer
 import traceback
 import settings
-from features import features,calc_features
+from pyfeatures import features,calc_features
 import numpy as np
 
 #BitFlyerからOHLCVデータを取得
@@ -85,7 +85,8 @@ def start(exchange,max_lot,lot,interval):
         dt_now = datetime.now()
         
         #指定した時間間隔ごとに実行
-        if (dt_now.minute % interval == 0 or firstFlg) and last_minute != dt_now.minute:
+        if dt_now.minute % interval == 0 and last_minute != dt_now.minute:
+            time.sleep(1)
             firstFlg = False
             last_minute = dt_now.minute
 
@@ -112,8 +113,9 @@ def start(exchange,max_lot,lot,interval):
                 df_features["y_predict_buy"] = model_y_buy.predict(df_features[features])
                 df_features["y_predict_sell"] = model_y_sell.predict(df_features[features])
 
-                df_features["buy_price"] = df_features["cl"] - df_features["ATR"] * 0.496
-                df_features["sell_price"] = df_features["cl"] + df_features["ATR"] * 0.496
+                limit_price_dist = df_features["ATR"] * 0.2
+                df_features["buy_price"] = df_features["cl"] - limit_price_dist
+                df_features["sell_price"] = df_features["cl"] + limit_price_dist
 
                 #売買判定のための情報取得
                 predict_buy = df_features["y_predict_buy"].iloc[-1]
