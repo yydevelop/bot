@@ -9,7 +9,9 @@ import os
 import ccxt
 import traceback
 import settings
-from features import features,calc_features
+from pyfeatures import features,calc_features
+import warnings
+warnings.filterwarnings('ignore')
 
 #BybitのOHLCV情報を取得
 def get_bybit_ohlcv(from_time,interval,limit):
@@ -105,7 +107,7 @@ def start(exchange,max_lot,lot,interval):
                 df_features["y_predict_sell"] = model_y_sell.predict(df_features[features])
 
                 pips = 0.5
-                limit_price_dist = df_features['ATR'] * 0.5
+                limit_price_dist = df_features['ATR'] * 0.2
                 limit_price_dist = np.maximum(1, (limit_price_dist / pips).round().fillna(1)) * pips
                 df_features["buy_price"] = df_features["cl"] - limit_price_dist 
                 df_features["sell_price"] = df_features["cl"] + limit_price_dist 
