@@ -2,3 +2,7 @@ settings.ini
 *.csv
 *.log
 __pycache__/settings.cpython-39.pyc
+*.pyc
+*.exe
+*.whl
+*.db
