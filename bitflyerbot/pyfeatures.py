@@ -2,7 +2,7 @@ import talib
 import numpy as np
 
 features = sorted([
-#      'ADX',
+     'ADX',
 #     'ADXR',
 #     'APO',
 #     'AROON_aroondown',
@@ -20,7 +20,7 @@ features = sorted([
 # #     'PLUS_DI',
 # #     'PLUS_DM',
     # 'RSI',
-    # 'ROC',
+    'ROC',
 #     'STOCH_slowk',
 #     'STOCH_slowd',
 #     'STOCHF_fastk',
@@ -55,7 +55,7 @@ features = sorted([
 #     'TRIMA',
 #     'WMA',
     # 'MACD_macd',
-    # 'RSI',
+    'RSI',
     'NATR',
     'NATR14',
     # 'volume',
