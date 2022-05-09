@@ -8,7 +8,7 @@ features = sorted([
 #     'AROON_aroondown',
 #     'AROON_aroonup',
 #     'AROONOSC',
-    # 'CCI',
+    'CCI',
 #     'DX',
 #     'MACD_macd',
 #     'MACD_macdsignal',
