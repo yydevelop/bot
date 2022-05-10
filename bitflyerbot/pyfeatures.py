@@ -153,7 +153,7 @@ def calc_features(df):
 
     df['ATR14'] = talib.ATR(high, low, close, timeperiod=14) #★
     df['NATR14'] = talib.NATR(high, low, close, timeperiod=14)
-    df['ATR'] = talib.ATR(high, low, close, timeperiod=3) #★
+    df['ATR'] = talib.ATR(high, low, close, timeperiod=14) #★
     df['NATR'] = talib.NATR(high, low, close, timeperiod=3)
     df['TRANGE'] = talib.TRANGE(high, low, close)
 
