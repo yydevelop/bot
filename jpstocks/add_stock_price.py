@@ -17,7 +17,7 @@ def make_daily_csv(code_range, save_dir):
 			df = dfs[0]
 			if '日付' in df.columns:
 				df.to_csv('{}/{}.T.csv'.format(save_dir,code), index=False, encoding='cp932', line_terminator='\n')
-		except Exception:
+		except Exception as e:
 			pass
 
 #%%

@@ -5,7 +5,6 @@ import sys
 import pandas as pd
 import datetime
 import os
-from sqlalchemy import false
 import talib as ta
 import MetaTrader5 as mt5
 import settings
@@ -22,7 +21,7 @@ logger.addHandler(handlerSh)
 logger.addHandler(handlerFile)
 
 MAGIC=843221
-SYMBOL = 'JP225Cash'
+SYMBOL = 'JP225'
 LOT = 1.0
 
 # LINEの設定

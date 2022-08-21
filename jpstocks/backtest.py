@@ -53,16 +53,18 @@ import MetaTrader5 as mt5
  
 # MetaTrader 5に接続する
 if not mt5.initialize():
-   print("initialize() failed")
+   print('initialize() failed, error code = ', mt5.last_error())
    mt5.shutdown()
  
 # 接続状態とパラメータをリクエストする
 print(mt5.terminal_info())
 # MetaTrader 5バージョンについてのデータを取得する
 print(mt5.version())
- 
+
+#%%
 # 数々の方法で異なる銘柄からバーを取得する
-ratesm = mt5.copy_rates_from("JP225Cash", mt5.TIMEFRAME_H1, datetime(2022,5,4,21), 300000)
+# ratesm = mt5.copy_rates_from("JP225Cash", mt5.TIMEFRAME_H1, datetime(2022,5,4,21), 300000)
+ratesm = mt5.copy_rates_from("JP225", mt5.TIMEFRAME_H1, datetime(2022,5,4,21), 300000)
 rates_framem = pd.DataFrame(ratesm)
 # 秒での時間をdatetime形式に変換する
 rates_framem['time']=pd.to_datetime(rates_framem['time'], unit='s')
@@ -79,8 +81,8 @@ df = df.at_time('15:00')
 df
 
 #%%
-#backtest_start_date = '2016-05-26'
-backtest_start_date = '2022-01-01'
+backtest_start_date = '2016-05-26'
+# backtest_start_date = '2022-01-01'
 df['proportion'] = None
 for date in pd.unique(n225_df['date']):
 	if date > backtest_start_date:
@@ -97,21 +99,34 @@ df
 #%%
 buy_exit_rate = 0.25
 sell_exit_rate = 0.75
-def calc_exit_price(close_price=None, proportion=None, exit_rate=None):
+def calc_exit_price_buy(close_price=None, proportion=None, exit_rate=None):
     y = close_price.copy()
     y[:] = np.nan
     force_entry_time = close_price.copy()
     force_entry_time[:] = np.nan
     for i in range(close_price.size):
         for j in range(i + 1, close_price.size):
-            if proportion[j] <= 0.25:
+            if proportion[j] <= exit_rate:
                 y[i] = close_price[j]
                 break
     return y
 
+def calc_exit_price_sell(close_price=None, proportion=None, exit_rate=None):
+    y = close_price.copy()
+    y[:] = np.nan
+    force_entry_time = close_price.copy()
+    force_entry_time[:] = np.nan
+    for i in range(close_price.size):
+        for j in range(i + 1, close_price.size):
+            if proportion[j] >= exit_rate:
+                y[i] = close_price[j]
+                break
+    return y
+
+
 df = df.dropna()
 df['buy_executed'] = (df['proportion']>=sell_exit_rate).astype('float64')
-df['buy_exit_price'] = calc_exit_price(df['close'].astype(np.float32),df['proportion'].astype(np.float32),buy_exit_rate)
+df['buy_exit_price'] = calc_exit_price_buy(df['close'].astype(np.float32),df['proportion'].astype(np.float32),buy_exit_rate)
 df['y_buy'] = np.where(
     df['buy_executed'],
     df['buy_exit_price']-df['close'],
@@ -119,7 +134,7 @@ df['y_buy'] = np.where(
 )
 
 df['sell_executed'] = (df['proportion']<=buy_exit_rate).astype('float64')
-df['sell_exit_price'] = calc_exit_price(df['close'].astype(np.float32),-df['proportion'].astype(np.float32),-1*sell_exit_rate)
+df['sell_exit_price'] = calc_exit_price_sell(df['close'].astype(np.float32),-df['proportion'].astype(np.float32),sell_exit_rate)
 df['y_sell'] = np.where(
     df['sell_executed'],
     df['close']-df['sell_exit_price'],
