@@ -113,7 +113,8 @@ def start(exchange,max_lot,lot,interval):
                 df_features["y_predict_buy"] = model_y_buy.predict(df_features[features])
                 df_features["y_predict_sell"] = model_y_sell.predict(df_features[features])
 
-                limit_price_dist = df_features["ATR"] * 0.2
+                # limit_price_dist = df_features["ATR"] * 0.2
+                limit_price_dist = df_features["ATR"] * 1
                 df_features["buy_price"] = df_features["cl"] - limit_price_dist
                 df_features["sell_price"] = df_features["cl"] + limit_price_dist
 
